@@ -80,7 +80,10 @@ public class ExecutorProvider {
     }
 
     public ExecutorService getExecutor() {
-        return executors.get((currentThread.getAndIncrement() & Integer.MAX_VALUE) % numThreads).getKey();
+        int index = (currentThread.getAndIncrement() & Integer.MAX_VALUE) % numThreads;
+        System.out.println(String.format("============poolName=%s, numThreads=%d, index=%d",
+                this.poolName, numThreads, index));
+        return executors.get(index).getKey();
     }
 
     public ExecutorService getExecutor(Object object) {

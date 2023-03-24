@@ -1380,6 +1380,7 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
                     }
                 }
             }
+            // 回调通知，写入内部队列
             executeNotifyCallback(message);
         } else {
             // handle batch message enqueuing; uncompressed payload has all messages in batch

@@ -332,6 +332,11 @@ public class ProducerImpl<T> extends ProducerBase<T> implements TimerTask, Conne
         if (interceptors != null) {
             interceptorMessage.getProperties();
         }
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (InterruptedException e) {
+            log.error("exception", e);
+        }
         sendAsync(interceptorMessage, new SendCallback() {
             SendCallback nextCallback = null;
             MessageImpl<?> nextMsg = null;

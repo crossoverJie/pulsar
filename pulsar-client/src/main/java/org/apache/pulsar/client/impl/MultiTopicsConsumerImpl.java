@@ -237,6 +237,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
     private void receiveMessageFromConsumer(ConsumerImpl<T> consumer, boolean batchReceive) {
         CompletableFuture<List<Message<T>>> messagesFuture;
         if (batchReceive) {
+            // 取出消息
             messagesFuture = consumer.batchReceiveAsync().thenApply(msgs -> ((MessagesImpl<T>) msgs).getMessageList());
         } else {
             messagesFuture = consumer.receiveAsync().thenApply(Collections::singletonList);
@@ -253,6 +254,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
             // Process the message, add to the queue and trigger listener or async callback
             messages.forEach(msg -> {
                 if (isValidConsumerEpoch((MessageImpl<T>) msg)) {
+                    // 取出消息，写入队列
                     messageReceived(consumer, msg);
                 }
             });
@@ -303,10 +305,11 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
         if (receivedFuture != null) {
             unAckedMessageTracker.add(topicMessage.getMessageId(), topicMessage.getRedeliveryCount());
             completePendingReceive(receivedFuture, topicMessage);
-        } else if (enqueueMessageAndCheckBatchReceive(topicMessage) && hasPendingBatchReceive()) {
+        } else if (enqueueMessageAndCheckBatchReceive(topicMessage) && hasPendingBatchReceive()) {// 取出消息，写入队列,offer队列
             notifyPendingBatchReceivedCallBack();
         }
 
+        // 通知 listener 拉取消息
         tryTriggerListener();
     }
 

@@ -500,6 +500,7 @@ public class ClientCnx extends PulsarHandler {
         }
         ConsumerImpl<?> consumer = consumers.get(cmdMessage.getConsumerId());
         if (consumer != null) {
+            // netty 收到消息
             consumer.messageReceived(cmdMessage, headersAndPayload, this);
         }
     }

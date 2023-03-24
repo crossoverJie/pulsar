@@ -432,4 +432,18 @@
       </plugin>
     </plugins>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>releases</id>
+      <name>Releases</name>
+      <url>https://nexus.ypsx-internal.com/repository/maven-releases/</url>
+      <uniqueVersion>true</uniqueVersion>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <name>Snapshots</name>
+      <url>https://nexus.ypsx-internal.com/repository/maven-snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
 </project>

@@ -2188,6 +2188,7 @@ flexible messaging model and an intuitive client API.</description>
         <module>pulsar-broker-common</module>
         <module>pulsar-broker</module>
         <module>pulsar-client-api</module>
+        <module>pulsar-client-all</module>
         <module>pulsar-client</module>
         <module>pulsar-client-admin-api</module>
         <module>pulsar-client-admin</module>

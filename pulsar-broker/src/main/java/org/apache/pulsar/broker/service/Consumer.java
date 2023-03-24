@@ -346,7 +346,7 @@ public class Consumer {
 
         // reduce permit and increment unackedMsg count with total number of messages in batch-msgs
         int ackedCount = batchIndexesAcks == null ? 0 : batchIndexesAcks.getTotalAckedIndexCount();
-        MESSAGE_PERMITS_UPDATER.addAndGet(this, ackedCount - totalMessages);
+        MESSAGE_PERMITS_UPDATER.addAndGet(this, acked[Count - totalMessages);
         if (log.isDebugEnabled()){
             log.debug("[{}-{}] Added {} minus {} messages to MESSAGE_PERMITS_UPDATER in broker.service.Consumer"
                             + " for consumerId: {}; avgMessagesPerEntry is {}",
