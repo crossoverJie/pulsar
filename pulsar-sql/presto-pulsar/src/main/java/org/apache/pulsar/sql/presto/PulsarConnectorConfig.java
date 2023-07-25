@@ -31,6 +31,7 @@ import org.apache.bookkeeper.stats.NullStatsProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminBuilder;
+import org.apache.pulsar.client.api.AuthenticationFactory;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.common.naming.NamedEntity;
 import org.apache.pulsar.common.nar.NarClassLoader;
@@ -56,6 +57,8 @@ public class PulsarConnectorConfig implements AutoCloseable {
     private Map<String, String> statsProviderConfigs = new HashMap<>();
     private String authPluginClassName;
     private String authParams;
+
+    private String authToken;
     private String tlsTrustCertsFilePath;
     private Boolean tlsAllowInsecureConnection;
     private Boolean tlsHostnameVerificationEnable;
@@ -300,6 +303,16 @@ public class PulsarConnectorConfig implements AutoCloseable {
         return this;
     }
 
+    public String getAuthToken() {
+        return this.authToken;
+    }
+
+    @Config("pulsar.auth-token")
+    public PulsarConnectorConfig setAuthToken(String authToken) throws IOException {
+        this.authToken = authToken;
+        return this;
+    }
+
     public Boolean isTlsAllowInsecureConnection() {
         return tlsAllowInsecureConnection;
     }
@@ -429,8 +442,17 @@ public class PulsarConnectorConfig implements AutoCloseable {
         if (this.pulsarAdmin == null) {
             PulsarAdminBuilder builder = PulsarAdmin.builder();
 
+            if (getAuthPlugin() != null && getAuthToken() != null) {
+                throw new IllegalArgumentException("Either pulsar.auth-plugin or pulsar.auth-token can be used,"
+                        + " but not both at the same time");
+            }
+
             if (getAuthPlugin() != null) {
                 builder.authentication(getAuthPlugin(), getAuthParams());
+            }
+
+            if (getAuthToken() != null){
+                builder.authentication(AuthenticationFactory.token(getAuthToken()));
             }
 
             if (isTlsAllowInsecureConnection() != null) {
