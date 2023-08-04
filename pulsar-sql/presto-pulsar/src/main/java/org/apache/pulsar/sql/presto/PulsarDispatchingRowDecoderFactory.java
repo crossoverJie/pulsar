@@ -50,8 +50,17 @@ public class PulsarDispatchingRowDecoderFactory {
 
     public PulsarRowDecoder createRowDecoder(TopicName topicName, SchemaInfo schemaInfo,
                                              Set<DecoderColumnHandle> columns) {
+        PulsarRowDecoder rowDecoder;
         PulsarRowDecoderFactory rowDecoderFactory = createDecoderFactory(schemaInfo);
-        return rowDecoderFactory.createRowDecoder(topicName, schemaInfo, columns);
+        try {
+            rowDecoder = rowDecoderFactory.createRowDecoder(topicName, schemaInfo, columns);
+        } catch (Exception e){
+            log.error(e, "Failed to create row decoder for topic:%s ", topicName);
+            rowDecoderFactory = new PulsarPrimitiveRowDecoderFactory();
+            schemaInfo = PulsarSqlSchemaInfoProvider.defaultSchema();
+            rowDecoder = rowDecoderFactory.createRowDecoder(topicName, schemaInfo, columns);
+        }
+        return rowDecoder;
     }
 
     public List<ColumnMetadata> extractColumnMetadata(TopicName topicName, SchemaInfo schemaInfo,

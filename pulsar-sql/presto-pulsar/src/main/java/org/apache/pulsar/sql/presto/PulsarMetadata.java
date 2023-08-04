@@ -298,9 +298,18 @@ public class PulsarMetadata implements ConnectorMetadata {
                         + topicName + ": " + ExceptionUtils.getRootCause(e).getLocalizedMessage(), e);
             }
         }
-        List<ColumnMetadata> handles = getPulsarColumns(
-                topicName, schemaInfo, withInternalColumns, PulsarColumnHandle.HandleKeyValueType.NONE
-        );
+        List<ColumnMetadata> handles;
+        try {
+            handles = getPulsarColumns(
+                    topicName, schemaInfo, withInternalColumns, PulsarColumnHandle.HandleKeyValueType.NONE
+            );
+        } catch (Exception e){
+            log.error(e, "Failed to get pulsarColumns");
+            schemaInfo = PulsarSqlSchemaInfoProvider.defaultSchema();
+            handles = getPulsarColumns(
+                    topicName, schemaInfo, withInternalColumns, PulsarColumnHandle.HandleKeyValueType.NONE
+            );
+        }
 
 
         return new ConnectorTableMetadata(schemaTableName, handles);
