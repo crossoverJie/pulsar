@@ -300,7 +300,7 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
                 .build();
         this.backloggedCursorThresholdEntries =
                 brokerService.pulsar().getConfiguration().getManagedLedgerCursorBackloggedThreshold();
-        registerTopicPolicyListener();
+//        registerTopicPolicyListener();
 
         this.compactedTopic = new CompactedTopicImpl(brokerService.pulsar().getBookKeeperClient());
 
@@ -366,6 +366,10 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
                     }
 
                     Policies policies = optPolicies.get();
+                    try {
+                        TimeUnit.SECONDS.sleep(10);
+                    } catch (Exception e) {
+                    }
 
                     this.updateTopicPolicyByNamespacePolicy(policies);
 
@@ -3528,6 +3532,7 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
     }
 
     protected CompletableFuture<Void> initTopicPolicy() {
+        registerTopicPolicyListener();
         if (brokerService.pulsar().getConfig().isSystemTopicEnabled()
                 && brokerService.pulsar().getConfig().isTopicLevelPoliciesEnabled()) {
             return CompletableFuture.completedFuture(null).thenRunAsync(() -> onUpdate(
