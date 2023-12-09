@@ -367,7 +367,7 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
 
                     Policies policies = optPolicies.get();
                     try {
-                        TimeUnit.SECONDS.sleep(10);
+                        TimeUnit.MILLISECONDS.sleep(800);
                     } catch (Exception e) {
                     }
 
