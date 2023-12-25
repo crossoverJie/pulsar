@@ -23,7 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.mledger.impl.ManagedLedgerImpl;
 import org.apache.pulsar.broker.auth.MockedPulsarServiceBaseTest;
 import org.apache.pulsar.broker.service.persistent.PersistentTopic;
+import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.client.api.Producer;
+import org.apache.pulsar.common.policies.data.PartitionedTopicStats;
+import org.apache.pulsar.common.policies.data.PublishRate;
 import org.apache.pulsar.common.policies.data.RetentionPolicies;
 import org.awaitility.Awaitility;
 import org.testng.Assert;
@@ -31,6 +34,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -100,5 +104,61 @@ public class TopicPoliciesWithBrokerRestartTest extends MockedPulsarServiceBaseT
             Assert.assertEquals(managedLedgerTemp.getConfig().getRetentionTimeMillis(),
                     TimeUnit.MINUTES.toMillis(20));
         }
+    }
+
+
+    @Test
+    public void testCreateTopicAndUpdatePolicyConcurrent() throws Exception {
+
+        final int topicNum = 100;
+        final int partition = 10;
+
+        // (1) Init topic
+        admin.namespaces().createNamespace("public/retention");
+        final String topicName = "persistent://public/retention/policy_with_broker_restart_s";
+        for (int i = 0; i < topicNum; i++) {
+            final String shadowTopicNames = topicName + "_" + i;
+            admin.topics().createPartitionedTopic(shadowTopicNames, partition);
+        }
+
+        // (2) Set Policy
+        for (int i = 90; i < 100; i++) {
+            final String shadowTopicNames = topicName + "_" + i;
+            CompletableFuture.runAsync(() -> {
+                while (true) {
+                    PublishRate publishRate = new PublishRate();
+                    publishRate.publishThrottlingRateInMsg = 100;
+                    try {
+                        admin.topicPolicies().setPublishRate(shadowTopicNames, publishRate);
+                    } catch (PulsarAdminException e) {
+                    }
+                }
+            });
+        }
+
+        for (int i = 90; i < 100; i++) {
+            final String shadowTopicNames = topicName + "_" + i;
+            CompletableFuture.runAsync(() -> {
+                while (true) {
+                    try {
+                        admin.lookups().lookupPartitionedTopic(shadowTopicNames);
+                    } catch (Exception e) {
+                    }
+                }
+            });
+        }
+
+        admin.namespaces().unload("public/retention");
+        admin.namespaces().unload("public/retention");
+        admin.namespaces().unload("public/retention");
+        Thread.sleep(1000* 5);
+
+        for (int i = 0; i < topicNum; i++) {
+            final String shadowTopicNames = topicName + "_" + i;
+            log.info("check topic: {}", shadowTopicNames);
+            PartitionedTopicStats partitionedStats = admin.topics().getPartitionedStats(shadowTopicNames, true);
+            Assert.assertEquals(partitionedStats.getPartitions().size(), partition);
+        }
+
     }
 }
